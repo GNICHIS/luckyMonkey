@@ -2,25 +2,73 @@ import argparse
 import requests
 import random
 from urlparse import urlparse
-from urljoin import urljoin
+from urlparse import urljoin
 from bs4 import BeautifulSoup
 
 #python2
 
-parser = argparse.ArgumentParser(description='LuckyMonkey.')
-"""
-parser.add_argument('--sum', dest='accumulate', action='store_const',
-                    const=sum, default=max,
-                    help='sum the integers (default: find the max)')
-"""
+#config part : 
 
-timeoutValue = 2
-verifySSL = False
-allowRedirects = False
+useragentsFile = "config/useragents"
+
+
+parser = argparse.ArgumentParser(description='LuckyMonkey.')
+
+parser.add_argument('--url',
+                    help='Url entry point',
+                    required=True,
+                    )
+
+parser.add_argument('--mode',
+                    help='Crawling mode can be either depth or breadh',
+                    #required=True,
+                    choices=['depth', 'breadh',]
+                    )
+
+parser.add_argument('--depth',
+                    help='Crawling depth default = 5',
+                    #required=True,
+                    default=5,
+                    type=int,
+                    )
+parser.add_argument('--timeout',
+                    help='requests timeout default = 5',
+                    #required=True,
+                    default=2,
+                    type=int,
+                    )
+parser.add_argument('--verifyssl',
+                    help='only accept verified SSL certificate default = True',
+                    #required=True,
+                    default=True,
+                    type=bool,
+                    )
+
+parser.add_argument('--allowredirects',
+                    help='Follow 301 and 302 url redirections default = False',
+                    #required=True,
+                    default=False,
+                    type=bool,
+                    )
+
+args = parser.parse_args()
+
+
+#timeoutValue = 2
+#verifySSL = False
+#allowRedirects = False
+
+timeoutValue = args.timeout
+verifySSL = args.verifyssl
+allowRedirects = args.allowredirects
+depth = args.depth
+mode = args.mode
+startUrl = args.url
+
 
 
 useragents = []
-with open("data/useragents", "r") as uas:
+with open(useragentsFile, "r") as uas:
     for ua in uas:
         useragents.append(ua.strip())
 
@@ -50,18 +98,21 @@ def getURLs(url):
             href = a["href"]
             if len(href) > 0:
                 if not absoluteURL(href):
-                    href = relativeToAbsolute(url, href)
-                
+                    href = relativeToAbsolute(url, href)                
                 if isCrawlable(href):
                     URLs.append(href)
         except Exception:
             pass
-
-
     return URLs
 
 
-def depthCrawling(URLs):
+hittedURLs = []
+def depthCrawling(URLs, d):
+    global hittedURLs
+    if d == depth:
+        return
+    for url in URLs:
+        crawledURLs = getURLs(url)
     return 0
 def breadhCrawling(URLs):
     return 0
