@@ -4,6 +4,9 @@ import random
 from urlparse import urlparse
 from urlparse import urljoin
 from bs4 import BeautifulSoup
+import re
+import random
+
 
 #python2
 
@@ -32,13 +35,13 @@ parser.add_argument('--depth',
                     type=int,
                     )
 parser.add_argument('--timeout',
-                    help='requests timeout default = 5',
+                    help='Requests timeout default = 5',
                     #required=True,
                     default=2,
                     type=int,
                     )
 parser.add_argument('--verifyssl',
-                    help='only accept verified SSL certificate default = True',
+                    help='Only accept verified SSL certificate default = True',
                     #required=True,
                     default=True,
                     type=bool,
@@ -49,6 +52,24 @@ parser.add_argument('--allowredirects',
                     #required=True,
                     default=False,
                     type=bool,
+                    )
+
+parser.add_argument('--include',
+                    help='A regular expression (regexp) to define the scope of the urls to follow default = All Urls tied to the parent domain',
+                    #required=True,
+                    default="",
+                    )
+
+parser.add_argument('--exclude',
+                    help='A regular expression (regexp) to define the scope of the urls to reject default = None',
+                    #required=True,
+                    default="",
+                    )
+
+parser.add_argument('--session',
+                    help='Define the session, default = randomly generated',
+                    #required=True,
+                    default="",
                     )
 
 args = parser.parse_args()
@@ -64,6 +85,9 @@ allowRedirects = args.allowredirects
 depth = args.depth
 mode = args.mode
 startUrl = args.url
+include = args.include
+exclude = args.exclude
+
 
 
 
@@ -107,12 +131,33 @@ def getURLs(url):
 
 
 hittedURLs = []
-def depthCrawling(URLs, d):
+def depthCrawling(url, d):
     global hittedURLs
     if d == depth:
         return
-    for url in URLs:
-        crawledURLs = getURLs(url)
-    return 0
-def breadhCrawling(URLs):
-    return 0
+    crawledURLs = getURLs(url)
+    for crawledURL in crawledURLs:
+        if crawledURL not in hittedURLs:
+            #print(crawledURL)
+            hittedURLs.append(crawledURL)
+            depthCrawling(crawledURL, d + 1)
+    
+def breadhCrawling(url, d):
+    global hittedURLs
+    q = [url]
+    while len(q) > 0 and d < depth:
+        crawledURLs = getURLs(q[-1])
+        for crawledURL in crawledURLs:
+            if crawledURL not in hittedURLs:
+                hittedURLs.append(crawledURL)
+                q.append(crawledURL)
+        d += 1
+
+
+#Manual silly testing :(
+#depthCrawling(startUrl, 0)
+breadhCrawling(startUrl, 0)
+print(len(hittedURLs))
+hittedURLs = []
+depthCrawling(startUrl, 0)
+print(len(hittedURLs))

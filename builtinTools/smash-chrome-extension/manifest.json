@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "Smash",
+    "version": "0.1.0",
+    "description": "Smash is a chrome/chromium extensions used to launch a precomputed Javascript payloads in the scope of a precrawled web pages. The main idea behind this extension is to arbitrary provoke all the HTML events, so the proxy might monitor new 'unreachble' endpoints (unreachable via classic crawling) ",
+
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "32": "monkey.ico"
+        }
+    },
+    "permissions": [
+        "tabs"
+    ]
+}
