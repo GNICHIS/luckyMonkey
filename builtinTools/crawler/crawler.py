@@ -1,4 +1,5 @@
 import argparse
+"""
 import requests
 import random
 from urlparse import urlparse
@@ -6,13 +7,12 @@ from urlparse import urljoin
 from bs4 import BeautifulSoup
 import re
 import random
+"""
 
+from modules.crawl import *
+from modules.payloads import *
+from modules.jsparser import *
 
-#python2
-
-#config part : 
-
-useragentsFile = "config/useragents"
 
 
 parser = argparse.ArgumentParser(description='LuckyMonkey.')
@@ -72,6 +72,13 @@ parser.add_argument('--session',
                     default="",
                     )
 
+parser.add_argument('--screenshots',
+                    help='Enable screenshots mode, so the script will store a screenshot for each visited web page, default = False',
+                    #required=True,
+                    default=False,
+                    type=bool,
+                    )
+
 args = parser.parse_args()
 
 
@@ -90,74 +97,15 @@ exclude = args.exclude
 
 
 
-
-useragents = []
-with open(useragentsFile, "r") as uas:
-    for ua in uas:
-        useragents.append(ua.strip())
-
-#Randomly pick a useragent from the useragents list
-
-useragent = useragents[random.randint(0, len(useragents) - 1)]
-
-#create an initial simple header
-
-headers = {
-    "User-Agent": useragent
-}
-
-def absoluteURL(url):
-    return (len(urlparse(url).scheme) != 0)
-def isCrawlable(url):
-    return (urlparse(url).scheme.lower() != "javascript" and urlparse(url).scheme.lower() != "data")
-def relativeToAbsolute(parentUrl, url):
-    return urljoin(parentUrl, url)
-
-def getURLs(url):
-    URLs = []
-    r = requests.get(url, headers=headers, timeout=timeoutValue, verify=verifySSL, allow_redirects=allowRedirects)
-    soup = BeautifulSoup(r.content, "html.parser")
-    for a in soup.find_all("a"):
-        try:
-            href = a["href"]
-            if len(href) > 0:
-                if not absoluteURL(href):
-                    href = relativeToAbsolute(url, href)                
-                if isCrawlable(href):
-                    URLs.append(href)
-        except Exception:
-            pass
-    return URLs
-
-
-hittedURLs = []
-def depthCrawling(url, d):
-    global hittedURLs
-    if d == depth:
-        return
-    crawledURLs = getURLs(url)
-    for crawledURL in crawledURLs:
-        if crawledURL not in hittedURLs:
-            #print(crawledURL)
-            hittedURLs.append(crawledURL)
-            depthCrawling(crawledURL, d + 1)
-    
-def breadhCrawling(url, d):
-    global hittedURLs
-    q = [url]
-    while len(q) > 0 and d < depth:
-        crawledURLs = getURLs(q[-1])
-        for crawledURL in crawledURLs:
-            if crawledURL not in hittedURLs:
-                hittedURLs.append(crawledURL)
-                q.append(crawledURL)
-        d += 1
-
-
 #Manual silly testing :(
 #depthCrawling(startUrl, 0)
-breadhCrawling(startUrl, 0)
+#signatures : depthCrawling(url, d, maxDepth, timeoutValue, verifySSL, allowRedirects)
+#             breadhCrawling(url, d, maxDepth, timeoutValue, verifySSL, allowRedirects)
+#breadhCrawling(startUrl, 0, depth, timeoutValue, verifySSL, allowRedirects)
+#print(len(hittedURLs))
+#print(hittedURLs)
+
+depthCrawling(startUrl, 0, depth, timeoutValue, verifySSL, allowRedirects)
 print(len(hittedURLs))
-hittedURLs = []
-depthCrawling(startUrl, 0)
-print(len(hittedURLs))
+
+print(hittedURLs)
