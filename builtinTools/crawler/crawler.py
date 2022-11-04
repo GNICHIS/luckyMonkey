@@ -94,6 +94,17 @@ mode = args.mode
 startUrl = args.url
 include = args.include
 exclude = args.exclude
+session = args.session
+
+
+def genSession(host):
+    hexchars = "abcdef0123456789"
+    r = ""
+    for i in range(0, 6):
+        r += hexchars[random.randint(0, len(hexchars) - 1)]
+    return(host.replace(".", "_") + "_" + r)
+
+session = genSession(urlparse(startUrl).netloc) if len(args.session) == 0 else args.session
 
 
 
@@ -105,7 +116,26 @@ exclude = args.exclude
 #print(len(hittedURLs))
 #print(hittedURLs)
 
-depthCrawling(startUrl, 0, depth, timeoutValue, verifySSL, allowRedirects)
+#depthCrawling(startUrl, 0, depth, timeoutValue, verifySSL, allowRedirects)
+breadhCrawling(startUrl, 0, depth, timeoutValue, verifySSL, allowRedirects)
+"""
 print(len(hittedURLs))
 
 print(hittedURLs)
+print("===============================")
+for key in hittedURLs.keys():
+    if len(hittedURLs[key]) > 0:
+        print(key, hittedURLs[key])
+"""
+
+
+# after the crawling is finished, the hittedURLs hashTable must be saved as a database in the right location
+# is not the good way to only be able to save the work 
+
+from modules.dbblahblah import *
+
+dbFile = "sessions/" + session + ".json"
+db = blahblahDB(dbFile)
+#print(hittedURLs)
+print(db.saveEntireDb(hittedURLs))
+

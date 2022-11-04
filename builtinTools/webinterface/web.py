@@ -8,15 +8,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return easyReadContent("web/index.html")
+    return easyReadContent("www/index.html")
 
 @app.route('/main.js')
 def index():
-    return easyReadContent("web/index.html")
+    return easyReadContent("www/main.js")
 
 @app.route('/main.css')
 def index():
-    return easyReadContent("web/index.html")
+    return easyReadContent("www/main.css")
 
 @app.route('/api/')
 def api():

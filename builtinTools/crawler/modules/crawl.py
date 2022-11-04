@@ -1,4 +1,7 @@
 from libraries import *
+from jsparser import *
+#import json
+
 
 
 #python2
@@ -32,9 +35,19 @@ def relativeToAbsolute(parentUrl, url):
 def inscope(url):
     return True
 
+def getEventsFromURL(url, timeoutValue, verifySSL, allowRedirects):
+    r = requests.get(url, headers=headers, timeout=timeoutValue, verify=verifySSL, allow_redirects=allowRedirects)
+    return getEvents(r.content)
+
 def getURLs(url, timeoutValue, verifySSL, allowRedirects):
+    global hittedURLs
     URLs = []
     r = requests.get(url, headers=headers, timeout=timeoutValue, verify=verifySSL, allow_redirects=allowRedirects)
+    #an implemented code to just ! extract html Events , test ! 
+    codes = getEvents(r.content)
+    #print(codes)
+    hittedURLs[url] = codes
+
     soup = BeautifulSoup(r.content, "html.parser")
     for a in soup.find_all("a"):
         try:
@@ -48,28 +61,35 @@ def getURLs(url, timeoutValue, verifySSL, allowRedirects):
             pass
     return URLs
 
-hittedURLs = []
+#hittedURLs = []
+hittedURLs = {}
 def depthCrawling(url, d, maxDepth, timeoutValue, verifySSL, allowRedirects):
     global hittedURLs
-    print("call")
+    hittedURLs[url] = []
     if d == maxDepth:
         return
     crawledURLs = getURLs(url, timeoutValue, verifySSL, allowRedirects)
-    print(crawledURLs)
     for crawledURL in crawledURLs:
-        if crawledURL not in hittedURLs:
-            #print(crawledURL)
-            hittedURLs.append(crawledURL)
-            print(crawledURL)
+        if crawledURL not in hittedURLs.keys():
+            #hittedURLs.append(crawledURL)
+            hittedURLs[crawledURL] = []
             depthCrawling(crawledURL, d + 1, maxDepth, timeoutValue, verifySSL, allowRedirects)
     
 def breadhCrawling(url, d, maxDepth, timeoutValue, verifySSL, allowRedirects):
     global hittedURLs
+    hittedURLs[url] = []
     q = [url]
     while len(q) > 0 and d < maxDepth:
-        crawledURLs = getURLs(q[-1], timeoutValue, verifySSL, allowRedirects)
+        nextURL = q[0]
+        q.pop(0)
+        crawledURLs = getURLs(nextURL, timeoutValue, verifySSL, allowRedirects)
         for crawledURL in crawledURLs:
-            if crawledURL not in hittedURLs:
-                hittedURLs.append(crawledURL)
+            if crawledURL not in hittedURLs.keys():
+                #hittedURLs.append(crawledURL)
+                hittedURLs[crawledURL] = []
                 q.append(crawledURL)
         d += 1
+    while len(q) > 0:
+        nextURL = q[0]
+        q.pop(0)
+        hittedURLs[nextURL] = getEventsFromURL(nextURL, timeoutValue, verifySSL, allowRedirects)
